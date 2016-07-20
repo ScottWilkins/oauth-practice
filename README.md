@@ -1,15 +1,14 @@
 ## OAuth
 
-A note about this exercise. This is not a "paint by numbers" OAuth exercise. We have left room for you to apply the things you already have some experience with:
+A note about this exercise. This is not entirely a "paint by numbers" OAuth exercise. We have left a _little_ room for you to apply the things you already have some experience with:
 
 * routes
-* requiring core modules 
-* middleware (Use the Galvanize Learning Experience if you need a refresher!)
+* requiring core modules
+* middleware
 * local environment variables
-* configuring environment variables on Heroku
-* deploying to Heroku 
+* deploying to Heroku
 
-What _is_ provided in this exercise is still _way_ friendlier than most OAuth documentation. So, consider this your friendly introduction. 
+What _is_ provided in this exercise is still _way_ friendlier than most OAuth documentation. So, consider this your friendly introduction.
 
 __YOU SHOULD:__
 
@@ -35,21 +34,21 @@ __#1 Create an Express App__
 Generate an express app that includes a `.gitignore` file:
 
 ```
-express --git linkedin-oauth
-cd linkedin-oauth
+fork / clone this repo
+cd into repo
+express --git .
 npm install
 nodemon
 ```
 
-Visit http://localhost:3000/ and make sure that the app loads correctly.  Then initialize a git repository:
+Visit http://localhost:3000/ and make sure that the app loads correctly. Then initialize a git repository:
 
 ```
-git init .
+git status
 git add -A
 git commit -m "Initial commit"
+git push origin master
 ```
-
-Now create a repository on Github, set the remote properly and push.
 
 __#2 Deploy to Heroku__
 
@@ -63,38 +62,46 @@ heroku open
 
 Now that you have a Heroku URL:
 
-1. add a README file
 1. add your Heroku URL to the README
 1. git add, commit and push to Github
 
-__#3 Install and configure dotenv and cookie-session__
+__#3 Install and configure dotenv and express-session__
 
-Passport requires that your app have a `req.session` object it can write to.  To enable this, install and require `cookie-session`.  In order to keep your secrets safe, you'll need to also install and load `dotenv`.
+Passport requires that your app have a `req.session` object it can write to. To enable this, install and require `express-session` in `app.js`. In order to keep your secrets safe, you'll need to also install and config `dotenv`. Go to the docs for help with
+syntax.
 
 ```
-npm install dotenv cookie-session --save
+npm install dotenv express-session --save
 touch .env
 echo .env >> .gitignore
 ```
-__#4 In `app.js`, require `cookie-session` and load dotenv:__
+__#4 In `app.js`, require `express-session` and load dotenv:__
 
-You've done this many times by now, so I'm going to let you handle this.
+You've seen this a few times now, so I'm going to let you handle adding the
+`dotenv` and requiring the `express-session` module.
 
 Using the following commands, add `SESSION_KEY1` and `SESSION_KEY2` to your `.env` and set each value to a randomly generated key:
 
 ```sh
-$ echo SESSION_KEY1=$(node -e "require('crypto').randomBytes(48, function(ex, buf) { console.log(buf.toString('hex')) });") >> .env
+echo SESSION_KEY1=$(node -e "require('crypto').randomBytes(48, function(ex, buf) { console.log(buf.toString('hex')) });") >> .env
 ```
 ```sh
-$ echo SESSION_KEY2=$(node -e "require('crypto').randomBytes(48, function(ex, buf) { console.log(buf.toString('hex')) });") >> .env
+echo SESSION_KEY2=$(node -e "require('crypto').randomBytes(48, function(ex, buf) { console.log(buf.toString('hex')) });") >> .env
 ```
+
+Go look in your `.env` file. What happened?
 
 
 __#5 Add the session middleware to your app:__
 
 ```js
 // after app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({ keys: [process.env.SESSION_KEY1, process.env.SESSION_KEY2] }))
+app.use(session({
+  keys: [process.env.SESSION_KEY1, process.env.SESSION_KEY2],
+  secret: 'bam',
+  resave: false,
+  saveUninitialized: true
+ }))
 ```
 
 Ensure that you app still works locally, then:
@@ -104,8 +111,11 @@ Ensure that you app still works locally, then:
 
 __Once you've deployed, be sure to set `SESSION_KEY1` and `SESSION_KEY2` on Heroku__
 
-If you can't remember how to do that, Google it. Something like `set Heroku config variables`
+__EXAMPLE of how to set an environment variable on Heroku:__
 
+```
+heroku config:set GITHUB_USERNAME=joesmith
+```
 Verify that your app still works correctly on Heroku.
 
 __#6 Set a HOST environment variable__
@@ -117,7 +127,6 @@ __#1 Set a HOST environment variable locally to your localhost (EXAMPLE: `http:/
 
 __#2 Set a HOST environment variable on Heroku to your Heroku URL__
 
-
 NOTE: do _not_ include the trailing slash.  So `https://guarded-inlet-5817.herokuapp.com` instead of `https://guarded-inlet-5817.herokuapp.com/`
 
 There should be nothing to commit at this point.
@@ -126,16 +135,15 @@ There should be nothing to commit at this point.
 
 1. Login to https://www.linkedin.com/
 1. Visit https://www.linkedin.com/developer/apps and create a new app
-1. For Logo URL, add your own OR you can use https://brandfolder.com/galvanize/attachments/suxhof65/galvanize-galvanize-logo-g-only-logo.png?dl=true
+1. For Logo URL, add your own OR you can past this into your browser and use this one.
+You'll have to resize it to be of equal height and width. https://brandfolder.com/galvanize/attachments/suxhof65/galvanize-galvanize-logo-g-only-logo.png?dl=true
 1. Under website add your Heroku URL
 1. Fill in all other required fields and submit
 
 __On the "Authentication" screen:__
 
-- Under authorized redirect URLs enter http://localhost:3000/auth/linkedin/callback
-- Under authorized redirect URLs enter your Heroku url, plus `/auth/linkedin/callback`
-
-You should see a `Client ID` and `Client Secret`.  Add these to your `.env` file, and set these environment variables on Heroku. Your `.env` file should look something like:
+You should see a `Client ID` and `Client Secret`.  Add these to your `.env` file, and set these environment variables on Heroku. Your `.env` file should look like this
+(but with real values):
 
 ```
 SESSION_KEY1=your-secret
@@ -144,8 +152,10 @@ HOST=http://localhost:3000
 LINKEDIN_CLIENT_ID=your-secret
 LINKEDIN_CLIENT_SECRET=your-secret
 ```
+Config those environment variables on Heroku as well.
 
-Set those variables on Heroku as well.
+- Under authorized redirect URLs enter http://localhost:3000/auth/linkedin/callback
+- Under authorized redirect URLs enter your Heroku url, plus `/auth/linkedin/callback`
 
 There should be nothing to add to git at this point.
 
@@ -186,13 +196,12 @@ passport.use(new LinkedInStrategy({
 ));
 ```
 
-Finally, tell Passport how to store the user's information in the session cookie:
+__Finally, tell Passport how to store the user's information in the session cookie:__
 
 ```js
 // above app.use('/', routes);...
 passport.serializeUser(function(user, done) {
- // later this will be where you selectively send to the browser an identifier for your user, 
- // like their primary key from the database, or their ID from linkedin
+ // later this will be where you selectively send to the browser an identifier for your user, like their primary key from the database, or their ID from linkedin
   done(null, user);
 });
 
@@ -218,21 +227,28 @@ __#1 route for logging in__
 
 Add a  GET `/auth/linkedin` route that takes a middleware argument of `passport.authenticate('linkedin')`.
 
-__NOTE:__ This route isn't going to respond with a `redirect` or a `render`. It's only job is
-to call the middleware function. You won't pass in a `callback` function here.
+__NOTE:__ This route isn't going to respond with a `redirect` or a `render`. It's only job is to call the middleware function. You won't pass in a `callback` function here.
+
+__IT SHOULD LOOK LIKE THIS:__
+
+`router.get('/auth/linkedin', passport.authenticate('linkedin'));`
 
 What else do you need to add to this route file for this function to work?
-If you don't know yet, don't worry, you'll get an error telling you all about it. Check your server logs!
+If you don't know yet, don't worry, you'll get an error telling you all about it
+in a little while. When that happens, check your server logs and see if you can fix it!
 
-__#2 Add a route for logging out__
+__#2 In `auth.js` add a route for logging out__
 
-In `/logout`, set `req.session` to null and `redirect` to `/`.
+Write a route that handles a `get` request to `/auth/logout`. For now, just redirect
+to `'/'`
 
 __#3 Create the route that LinkedIn will call once the user has authenticated properly:__
 
-The route should be a GET request to `/auth/linkedin/callback` that takes a middleware
+The route should be a `GET` request to `/auth/linkedin/callback` that takes a middleware
 argument of `passport.authenticate('linkedin', { failureRedirect: '/' })`. Inside the route
 you will simply `redirect` to `/`.
+
+_See an above route for help passing in the middleware function. You just did this._
 
 __#4 Back in `app.js`, be sure to require your `auth` routes file__
 
@@ -248,7 +264,7 @@ With this setup, you should be able to login with LinkedIn successfully by visit
 
 http://localhost:3000/auth/linkedin
 
-If it's successful, you should be redirected to the homepage.  If you check your terminal output, you should see a line in there like:
+If it's successful, you should be redirected to the homepage. If you check your terminal output, you should see a line in there like:
 
 ```
 GET /auth/linkedin/callback?oauth_token=78--3f284b63-1aff-4eb5-b710-104bae4f5413&oauth_verifier=07507 302 791.066 ms - 58
@@ -256,25 +272,30 @@ GET /auth/linkedin/callback?oauth_token=78--3f284b63-1aff-4eb5-b710-104bae4f5413
 
 That indicates that LinkedIn successfully authenticated the user.
 
+__IF EVERYTHING IS WORKING, NOW WOULD BE A GOOD TIME TO ADD and COMMIT!__
+
 ## Configure the views
 
-Inside the `body` tag in `./views/layout.jade`:
+__TASK LIST__
 
-* add a `login with LinkedIn` link
+* add a `login with LinkedIn` link (What route should that hit?)
+  * The `Login with LinkedIn` link should _not_ be displayed if a user is logged in
 * add a `logout` link
-* The `login` link should _not_ be displayed if a user is logged in
-* The `logout` link should _only_ be displayed if a user is logged in
+  * The `logout` link should _only_ be displayed if a user is logged in
+* display the name of the currently logged-in user
 
-__Display the name of the currently logged-in user__
+
+__NOTE:__
 
 To do this part, you'll need to access some of the information LinkedIn gave to
 you when the user successfully logged in. Check out the chunks of code you added
 in `app.js` and `console.log` some of the results to see what you have to work with.
 
-You can use that object to add middleware that will set the `user` local
-variable in all views.
 
-__NOTE:__ Passport sets the `req.user` property for you automatically.
+Upon successful login, Passport sets a `req.user` variable.
+You can use that object to add middleware that __will set the `user` local
+variable for all views__. How could you use this to get all of the above tasks
+working?
 
 ```js
 // right above app.use('/', routes);
@@ -283,6 +304,14 @@ app.use(function (req, res, next) {
   next()
 })
 ```
+
+__FINISH THE LOGOUT ROUTE:__
+
+Ok, by now you should have done some exploring to see what the LinkedIn Strategy
+is doing, what is being return etc. In your `/auth/logout` route, `console.log`
+`req.session` and see what's in there. Recall your experience using `express-session`.
+Go to the docs and see if you can figure out what code to add to your `/auth/logout`
+route to end the current user session.
 
 You should now be able to login and logout with LinkedIn!!!
 
@@ -312,7 +341,6 @@ __#3 Use Passport to implement login with Facebook, or some other 3rd party appl
 
 ## Resources
 
-- [Authorization and Middleware Learning Experience](https://coursework.galvanize.com/curriculums/6/learning_experiences/22)
 - https://developer.linkedin.com/docs/oauth2
 - http://passportjs.org/docs
 - https://github.com/jaredhanson/passport-linkedin
