@@ -2,4 +2,11 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
+  p you in the Jade now, sucka.
+
+  if(!user)
+    a(href='/auth/linkedin') linkedin login
+
+  else
+    a(href='/auth/logout') linkedin logout
+    p whattup, #{user.displayName}
