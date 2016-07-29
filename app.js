@@ -1,9 +1,11 @@
+require('dotenv').config({silent: true});
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('express-session')
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -21,6 +23,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(session({
+  keys: [process.env.SESSION_KEY1, process.env.SESSION_KEY2],
+  secret: 'bam',
+  resave: false,
+  saveUninitialized: true
+ }))
 
 app.use('/', routes);
 app.use('/users', users);
